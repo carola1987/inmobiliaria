@@ -10,6 +10,6 @@ class InmuebleForm(forms.ModelForm): #este es el formulario para crear el inmueb
 class UsuarioForm(forms.ModelForm): #este es el formulario para registrar un usuario
     class Meta:
         model = Usuario
-        fields = ['nombre', 'apellido', 'rut', 'direccion', 'telefono', 'correo_electronico', 'tipo_usuario']
+        fields = ['nombres', 'apellidos', 'rut', 'direccion', 'telefono', 'correo_electronico', 'tipo_usuario']
 
         

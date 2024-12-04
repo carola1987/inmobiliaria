@@ -1,0 +1,20 @@
+#formulario para crear los inmuebles dentro de la pagina
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Inmueble</title>
+
+</head>
+<body>
+    <h1>Crear un nuevo inmueble</h1>
+    <form method="POST">
+        {%csrf_token%}
+        {{form.as_p}}
+        <button type="submit"> Crear Inmueble </button>
+    </form>
+    
+</body>
+</html>

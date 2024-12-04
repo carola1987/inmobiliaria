@@ -1,0 +1,21 @@
+#pagina de listado de inmuebles
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inmuebles Disponibles</title>
+</head>
+<body>
+    <h1>Lista de inmuebles</h1>
+    <ul>
+        {% for inmueble in inmuebles %}
+            <li>
+                <a href="{% url 'gestion_inmuebles:inmueble_detail' inmueble.id %}"> {{ inmueble.nombre }} </a>
+            </li>
+        {% endfor %}
+    </ul>
+    
+</body>
+</html>

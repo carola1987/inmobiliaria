@@ -1,8 +1,10 @@
-from django.shortcuts import render, get_list_or_404
+from django.shortcuts import render, get_list_or_404, redirect
 from gestion_inmuebles.models import Usuario, Inmueble, RelacionUsuarioInmueble
 from .models import Inmueble
 from django.views import View
 from .forms import InmuebleForm
+from django.views.generic import CreateView
+from django.urls import CreateView
 
 # Create your views here.
 
@@ -43,7 +45,7 @@ class InmuebleDetailView(View): #esta vista es para mostrar los detalles de los 
         inmueble = get_list_or_404(Inmueble, pk=inmueble_id)
         return render(request, 'gestion_inmuebles/inmueble_detail.html', {'inmueble':inmueble})
     
-class InmuebleCreateView(View): #esta vista es para crear un inmueble, solo para arrendadores
+class InmuebleCreateView(CreateView): #esta vista es para crear un inmueble, solo para arrendadores
     def get(self, request):
         form = InmuebleForm
         return render(request, 'gestion_inmuebles/inmueble_form.html', {'form':form})
