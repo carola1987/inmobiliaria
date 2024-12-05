@@ -6,6 +6,6 @@ app_name = 'gestion_inmuebles'
 urlpatterns = [
     path('inmuebles/', views.InmuebleListView.as_view(), name='inmueble_list'),
     path('inmueble/<int:inmueble_id>/', views.InmuebleDetailView.as_view(), name='inmueble_detail'),
-    path('inmueble/nuevo/', views.InmuebleCreateView.as_view(), name='inmueble_create')
+    path('inmueble/create/', views.InmuebleCreateView.as_view(), name='inmueble_create'),
     
 ]

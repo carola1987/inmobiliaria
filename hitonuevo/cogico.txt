@@ -1,0 +1,185 @@
+Para implementar un sistema de inscripción de usuarios con dos tipos
+ de usuarios (arrendatario y arrendador) en Django, necesitas realizar los siguientes pasos:
+
+1. Modelo de Usuario:
+Ya que mencionas que tienes dos tipos de usuarios, 
+podemos asumir que ya tienes un modelo Usuario que incluye un campo para diferenciar entre arrendatario y arrendador. Si no lo tienes, podemos definirlo de la siguiente manera:
+
+Modelo Usuario (en models.py):
+Asegúrate de que tu modelo de usuario tenga un campo para almacenar el tipo de usuario.
+
+python
+Copiar código
+from django.db import models
+
+class Usuario(models.Model):
+    TIPO_USUARIO_CHOICES = [
+        ('arrendatario', 'Arrendatario'),
+        ('arrendador', 'Arrendador'),
+    ]
+
+    nombres = models.CharField(max_length=100)
+    apellidos = models.CharField(max_length=100)
+    rut = models.CharField(max_length=12, unique=True)
+    direccion = models.CharField(max_length=255)
+    telefono = models.CharField(max_length=15)
+    correo_electronico = models.EmailField(unique=True)
+    tipo_usuario = models.CharField(max_length=12, choices=TIPO_USUARIO_CHOICES)
+
+    def __str__(self):
+        return f"{self.nombres} {self.apellidos} ({self.tipo_usuario})"
+En este modelo, tipo_usuario se utiliza para diferenciar entre arrendatarios y arrendadores, y el campo TIPO_USUARIO_CHOICES define las dos opciones.
+
+2. Formulario de Registro de Usuario:
+Crea un formulario para la inscripción de usuarios. Puedes hacerlo utilizando forms.ModelForm para generar un formulario basado en tu modelo Usuario.
+
+Formulario UsuarioForm (en forms.py):
+python
+Copiar código
+from django import forms
+from .models import Usuario
+
+class UsuarioForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ['nombres', 'apellidos', 'rut', 'direccion', 'telefono', 'correo_electronico', 'tipo_usuario']
+Este formulario permitirá a los usuarios ingresar los datos necesarios para registrarse y seleccionar su tipo de usuario.
+
+3. Vista de Registro de Usuario:
+Ahora, crea una vista que maneje el proceso de registro de usuarios. La vista debe permitir que el usuario se registre y, según su tipo (arrendatario o arrendador), se le redirija a una página diferente.
+
+Vista registrar_usuario (en views.py):
+python
+Copiar código
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import UsuarioForm
+from django.contrib.auth.models import User
+
+def registrar_usuario(request):
+    if request.method == 'POST':
+        form = UsuarioForm(request.POST)
+        if form.is_valid():
+            usuario = form.save()
+            messages.success(request, 'Usuario registrado con éxito.')
+            # Si es arrendador, redirige a una página para agregar inmuebles
+            if usuario.tipo_usuario == 'arrendador':
+                return redirect('gestion_inmuebles:inmueble_create')
+            # Si es arrendatario, redirige a una página con la lista de inmuebles
+            else:
+                return redirect('gestion_inmuebles:inmueble_list')
+    else:
+        form = UsuarioForm()
+
+    return render(request, 'usuarios/registrar_usuario.html', {'form': form})
+En este caso, cuando el usuario se registra, dependiendo de si es un "arrendador" o un "arrendatario", se le redirige a diferentes páginas. El arrendador se redirige a la página de creación de inmuebles (inmueble_create), mientras que el arrendatario se redirige a la lista de inmuebles disponibles (inmueble_list).
+
+4. Plantilla de Registro de Usuario:
+Crea una plantilla para el formulario de registro. Esta plantilla mostrará el formulario y manejará los mensajes de éxito o error.
+
+Plantilla registrar_usuario.html (en templates/usuarios/):
+html
+Copiar código
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Usuario</title>
+</head>
+<body>
+    <h1>Registrar Usuario</h1>
+    
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Registrarse</button>
+    </form>
+    
+</body>
+</html>
+5. URLs para Registro de Usuario:
+Asegúrate de que la ruta para el registro de usuarios esté configurada en tu archivo urls.py.
+
+Archivo urls.py (de gestion_inmuebles o de tu app de usuarios):
+python
+Copiar código
+from django.urls import path
+from . import views
+
+app_name = 'usuarios'
+
+urlpatterns = [
+    path('registrar/', views.registrar_usuario, name='registrar_usuario'),
+]
+6. Vistas de Inicio de Sesión (Login):
+Para permitir que los usuarios (tanto arrendadores como arrendatarios) inicien sesión, puedes utilizar las vistas de autenticación que proporciona Django. Puedes agregar una vista de inicio de sesión utilizando LoginView y configurar las URLs correspondientes.
+
+Vista de Login (en urls.py):
+python
+Copiar código
+from django.contrib.auth import views as auth_views
+
+urlpatterns = [
+    path('login/', auth_views.LoginView.as_view(), name='login'),
+    # Otras rutas
+]
+Django manejará automáticamente el proceso de inicio de sesión si se configura el template de login correctamente.
+
+7. Redirección Basada en el Tipo de Usuario:
+Para que, al iniciar sesión, el usuario sea redirigido a la página correcta dependiendo de si es arrendatario o arrendador, puedes personalizar la redirección después de que el usuario inicie sesión. Para hacerlo, puedes sobrescribir el método get_redirect_url() en tu vista de login.
+
+Vista CustomLoginView:
+python
+Copiar código
+from django.contrib.auth.views import LoginView
+from django.shortcuts import redirect
+
+class CustomLoginView(LoginView):
+    def get_redirect_url(self):
+        # Redirige según el tipo de usuario
+        if self.request.user.usuario.tipo_usuario == 'arrendador':
+            return redirect('gestion_inmuebles:inmueble_create')
+        else:
+            return redirect('gestion_inmuebles:inmueble_list')
+Y luego, en urls.py, usas esta vista personalizada:
+
+python
+Copiar código
+from .views import CustomLoginView
+
+urlpatterns = [
+    path('login/', CustomLoginView.as_view(), name='login'),
+]
+8. Modelo de Usuario con Autenticación (Opcional):
+Si deseas integrar el modelo Usuario con el sistema de autenticación de Django, debes extender el modelo AbstractUser de Django y agregar los campos necesarios para personalizarlo aún más.
+
+Extender AbstractUser (opcional):
+python
+Copiar código
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+class Usuario(AbstractUser):
+    TIPO_USUARIO_CHOICES = [
+        ('arrendatario', 'Arrendatario'),
+        ('arrendador', 'Arrendador'),
+    ]
+    
+    tipo_usuario = models.CharField(max_length=12, choices=TIPO_USUARIO_CHOICES)
+Resumen:
+Modelo de Usuario: Asegúrate de que el modelo de usuario tenga un campo para diferenciar entre arrendatarios y arrendadores.
+Formulario de Registro: Usa ModelForm para crear un formulario para la inscripción de usuarios.
+Vista de Registro: Crea una vista que maneje el registro de usuarios, incluyendo la redirección según el tipo de usuario.
+URLs y Templates: Configura las URLs y crea plantillas para el registro de usuarios.
+Login: Implementa una vista de inicio de sesión y redirige a los usuarios según su tipo.
+Con estos pasos, podrás tener un sistema de inscripción de usuarios con dos tipos diferentes, permitiendo a los arrendadores crear propiedades y a los arrendatarios ver las propiedades disponibles.
+

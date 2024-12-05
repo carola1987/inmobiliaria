@@ -1,20 +1,41 @@
-#formulario para crear los inmuebles dentro de la pagina
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Inmueble</title>
-
 </head>
 <body>
     <h1>Crear un nuevo inmueble</h1>
     <form method="POST">
-        {%csrf_token%}
-        {{form.as_p}}
-        <button type="submit"> Crear Inmueble </button>
+        {% csrf_token %}
+        
+        <!-- Mostrar errores generales si los hay -->
+        {% if form.errors %}
+            <div class="error">
+                <p>Hubo errores en el formulario, por favor revisa los campos.</p>
+            </div>
+        {% endif %}
+        
+        <!-- Iterar sobre cada campo del formulario -->
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label> <!-- Etiqueta del campo -->
+                {{ field }} <!-- El campo del formulario -->
+                
+                <!-- Si hay errores para este campo, mostrarlos -->
+                {% if field.errors %}
+                    <ul class="error-list">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endfor %}
+        
+        <button type="submit">Crear Inmueble</button>
     </form>
-    
 </body>
 </html>
+

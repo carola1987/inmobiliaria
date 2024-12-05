@@ -3,8 +3,9 @@ from gestion_inmuebles.models import Usuario, Inmueble, RelacionUsuarioInmueble
 from .models import Inmueble
 from django.views import View
 from .forms import InmuebleForm
-from django.views.generic import CreateView
-from django.urls import CreateView
+from django.views.generic.edit import CreateView
+from django.urls import reverse_lazy
+
 
 # Create your views here.
 
@@ -45,16 +46,12 @@ class InmuebleDetailView(View): #esta vista es para mostrar los detalles de los 
         inmueble = get_list_or_404(Inmueble, pk=inmueble_id)
         return render(request, 'gestion_inmuebles/inmueble_detail.html', {'inmueble':inmueble})
     
-class InmuebleCreateView(CreateView): #esta vista es para crear un inmueble, solo para arrendadores
-    def get(self, request):
-        form = InmuebleForm
-        return render(request, 'gestion_inmuebles/inmueble_form.html', {'form':form})
-    
-    def post(self, request):
-        form = InmuebleForm(request.POST)
-        if form.is_valid():
-            form.save() #este comando guarda el inmueble que se acaba de crear
-            return redirect('gestion_inmuebles: inmueble_list') #este comando redirige a la lista de inmuebles
-        return render(request, 'gestion_inmuebles/inmueble_form.html', {'form':form})
-    
-    
+class InmuebleCreateView(CreateView):  # Esta vista es para crear un inmueble, solo para arrendadores
+    model = Inmueble
+    form_class = InmuebleForm
+    template_name = 'gestion_inmuebles/inmueble_form.html'
+    success_url = reverse_lazy('gestion_inmuebles:inmueble_list')   # Redirige a la lista de inmuebles
+
+    def form_valid(self, form):
+        # Aquí puedes agregar lógica adicional si es necesario
+        return super().form_valid(form)
